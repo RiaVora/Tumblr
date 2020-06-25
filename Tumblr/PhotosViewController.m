@@ -7,9 +7,12 @@
 //
 
 #import "PhotosViewController.h"
+#import "PhotoCell.h"
+#import "UIImageView+AFNetworking.h"
 
 @interface PhotosViewController () <UITableViewDataSource, UITableViewDelegate>
 @property (weak, nonatomic) IBOutlet UITableView *tableView;
+
 
 @property (strong, nonatomic) NSArray *posts;
 
@@ -19,7 +22,6 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view.
     
     self.tableView.delegate = self;
     self.tableView.dataSource = self;
@@ -34,11 +36,10 @@
             else {
                 NSDictionary *dataDictionary = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:nil];
 
-                // TODO: Get the posts and store in posts property
                 NSDictionary *responseDictionary = dataDictionary[@"response"];
                 self.posts = responseDictionary[@"posts"];
                 
-                // TODO: Reload the table view
+                [self.tableView reloadData];
                 
             }
         }];
@@ -50,8 +51,16 @@
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    UITableViewCell *cell = [[UITableViewCell alloc] init];
-    cell.textLabel.text = [NSString stringWithFormat:@"This is row %ld", (long)indexPath.row];
+    PhotoCell *cell = [tableView dequeueReusableCellWithIdentifier:@"PhotoCell" forIndexPath:indexPath];
+    NSDictionary *post = self.posts[indexPath.row];
+    NSArray *photos = post[@"photos"];
+    if (photos) {
+        NSDictionary *photo = photos[0];
+        NSDictionary *originalSize =  photo[@"original_size"];
+        NSString *urlString = originalSize[@"url"];
+        NSURL *url = [NSURL URLWithString:urlString];
+        [cell.photoView setImageWithURL:url];
+    }
     
     return cell;
 }
